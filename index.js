@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
+var multer = require("multer");
+var fs = require("fs");
 require("dotenv").config();
 
 const server = http.createServer(app);
@@ -21,9 +23,76 @@ app.use(cookieParser());
 
 app.use(bodyParser.json());
 
-// Route files
+// api to reseive files from client and save it to file folder
+app.post("/upload", (req, res) => {
+  // encode userid with base64 to avoid special characters
+  const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
 
-// Mount routers
+  // create a sub folder inside file folder
+  var dir = "./files/" + encodedUserId;
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+  }
+
+  var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      // save file to sub folder
+      cb(null, "files/" + encodedUserId);
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.originalname);
+    },
+  });
+
+  var upload = multer({ storage: storage }).single("file");
+
+  upload(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json(err);
+    } else if (err) {
+      return res.status(500).json(err);
+    }
+    return res.status(200).send(req.file);
+  });
+});
+
+// api to get all files from file folder
+app.get("/files", (req, res) => {
+  // encode userid with base64 to avoid special characters
+  const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
+
+  // get all files from sub folder and send it to client as base64 string
+  fs.readdir("./files/" + encodedUserId, (err, files) => {
+    if (err) {
+      return res.status(500).json(err);
+    }
+    var fileArray = [];
+    files.forEach((file) => {
+      var fileObj = {};
+      fileObj.name = file;
+      fileObj.file = fs.readFileSync("./files/" + encodedUserId + "/" + file, {
+        encoding: "base64",
+      });
+      fileObj.type = file.split(".")[1];
+      fileArray.push(fileObj);
+    });
+    return res.status(200).send(fileArray);
+  });
+});
+
+// api to delete file from file folder
+app.delete("/files/:name", (req, res) => {
+  // encode userid with base64 to avoid special characters
+  const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
+
+  // delete file from sub folder
+  fs.unlink("./files/" + encodedUserId + "/" + req.params.name, (err) => {
+    if (err) {
+      return res.status(500).json(err);
+    }
+    return res.status(200).send("File deleted successfully");
+  });
+});
 
 const io = new Server(server, {
   cors: {
