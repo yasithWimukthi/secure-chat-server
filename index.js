@@ -6,6 +6,8 @@ const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
 var multer = require("multer");
+var jwt = require("express-jwt");
+var jwks = require("jwks-rsa");
 var fs = require("fs");
 require("dotenv").config();
 
@@ -13,6 +15,20 @@ const server = http.createServer(app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
+
+const verifyJwt = jwt({
+  secret: jwks.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: `https://${process.env.AUTH_ISSUER}/.well-known/jwks.json`,
+  }),
+  audience: process.env.AUTH0_AUDIENCE,
+  issuer: `https://${process.env.AUTH_ISSUER}/`,
+  algorithms: ["RS256"],
+});
+
+app.use(verifyJwt);
 
 //Body parser
 app.use(express.json({ limit: "50mb" }));
