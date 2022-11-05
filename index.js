@@ -10,6 +10,12 @@ var jwt = require("express-jwt");
 var jwks = require("jwks-rsa");
 var fs = require("fs");
 require("dotenv").config();
+let tls;
+try {
+  tls = require("node:tls");
+} catch (err) {
+  console.log("tls support is disabled!");
+}
 
 const server = http.createServer(app);
 
