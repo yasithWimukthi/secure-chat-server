@@ -11,6 +11,18 @@ var jwks = require("jwks-rsa");
 var fs = require("fs");
 require("dotenv").config();
 
+var tls;
+try {
+  tls = require("node:tls");
+} catch (err) {
+  console.log("tls support is disabled!");
+}
+var msg = "hey world";
+var options = {
+  key: fs.readFileSync("ryans-key.pem"),
+  cert: fs.readFileSync("ryans-cert.pem"),
+};
+
 const server = http.createServer(app);
 
 //request allow any domain
