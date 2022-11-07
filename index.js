@@ -23,7 +23,11 @@ var options = {
   cert: fs.readFileSync("ryans-cert.pem"),
 };
 
-const server = http.createServer(app);
+const server = tls.createServer(options, function (s) {
+  s.write(msg + "\n");
+  s.pipe(s);
+});
+// const server = http.createServer(app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
@@ -124,7 +128,17 @@ app.delete("/files/:name", (req, res) => {
 
 // api to receive message from client
 app.post("/message", (req, res) => {
-  console.log(req.body.message);
+  try {
+    console.log(req.body.message);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error });
+  }
+});
+
+app.get("/", (req, res) => {
+  res.status(200).json({ success: true });
 });
 
 const PORT = process.env.PORT || 5001;
