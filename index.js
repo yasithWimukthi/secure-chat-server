@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
+//const https = require("https");
 const { Server } = require("socket.io");
 var multer = require("multer");
 var jwt = require("express-jwt");
@@ -11,7 +12,13 @@ var jwks = require("jwks-rsa");
 var fs = require("fs");
 require("dotenv").config();
 
+// const options = {
+//   key: fs.readFileSync("/srv/www/keys/my-site-key.pem"),
+//   cert: fs.readFileSync("/srv/www/keys/chain.pem"),
+// };
+
 const server = http.createServer(app);
+//const server = https.createServer(options, app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
