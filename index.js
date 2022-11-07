@@ -23,10 +23,18 @@ var options = {
   cert: fs.readFileSync("ryans-cert.pem"),
 };
 
-const server = tls.createServer(options, function (s) {
-  s.write(msg + "\n");
-  s.pipe(s);
-});
+const server = tls
+  .createServer(
+    options,
+    function (s) {
+      s.write(msg + "\n");
+      s.pipe(s);
+    },
+    (err) => {
+      console.error("HTTPS server error", err);
+    }
+  )
+  .listen(5001);
 // const server = http.createServer(app);
 
 //request allow any domain
@@ -143,6 +151,8 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5001;
 
-server.listen(PORT, console.log(`Server running on port ${PORT}`));
+// server.listen(PORT, console.log(`Server running on port ${PORT}`), (err) => {
+//   console.error("HTTPS server error", err);
+// });
 
 module.exports = app;
