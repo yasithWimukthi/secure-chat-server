@@ -8,18 +8,12 @@ var fs = require("fs");
 require("dotenv").config();
 
 // SSL
-const cert = fs.readFileSync("./ssl/cert.pem");
-const key = fs.readFileSync("./ssl/ssdapi.key");
-const origin_ca_ecc_root = fs.readFileSync("./ssl/origin_ca_ecc_root.pem");
-const origin_ca_rsa_root = fs.readFileSync("./ssl/origin_ca_rsa_root.pem");
-const authenticated_origin_pull_ca = fs.readFileSync(
-  "./ssl/authenticated_origin_pull_ca.pem"
-);
+const cert = fs.readFileSync("./server.csr");
+const key = fs.readFileSync("./server.key");
 
 const options = {
-  cert: authenticated_origin_pull_ca,
   key: key,
-  ca: [origin_ca_ecc_root, origin_ca_rsa_root],
+  cert: cert,
 };
 
 const server = http.createServer(options, app);
