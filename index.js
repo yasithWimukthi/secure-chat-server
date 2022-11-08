@@ -14,11 +14,6 @@ try {
 } catch (err) {
   console.log("tls support is disabled!");
 }
-var msg = "hey world";
-var options = {
-  key: fs.readFileSync("ryans-key.pem"),
-  cert: fs.readFileSync("ryans-cert.pem"),
-};
 
 const server = http.createServer(app);
 
