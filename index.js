@@ -4,27 +4,51 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
-//const https = require("https");
 const { Server } = require("socket.io");
 var multer = require("multer");
 var jwt = require("express-jwt");
 var jwks = require("jwks-rsa");
 var fs = require("fs");
+var tls = require("tls");
 require("dotenv").config();
 
-var tls;
-try {
-  tls = require("node:tls");
-} catch (err) {
-  console.log("tls support is disabled!");
-}
+// var tls;
+// try {
+//   tls = require("node:tls");
+// } catch (err) {
+//   console.log("tls support is disabled!");
+//   console.log(err);
+// }
+
 var msg = "hey world";
 var options = {
   key: fs.readFileSync("ryans-key.pem"),
   cert: fs.readFileSync("ryans-cert.pem"),
+  // rejectUnauthorized: false,
 };
 
-const server = http.createServer(app);
+// Creating and initializing server
+// by using tls.createServer() method
+const server = tls.createServer(
+  options,
+  function (s) {
+    s.write(msg + "\n");
+    s.pipe(s);
+
+    // Stopping the server
+    // by using the close() method
+    server.close(() => {
+      console.log("Server closed successfully");
+    });
+  },
+  (err) => {
+    console.error("HTTPS server error", err);
+  }
+);
+
+// .listen(5001);
+// const server = http.createServer(app);
+
 //const server = https.createServer(options, app);
 
 //request allow any domain
@@ -124,6 +148,7 @@ app.delete("/files/:name", (req, res) => {
   });
 });
 
+//const ca = fs.readFile("ryans-cert.pem");
 // api to receive message from client
 app.post("/message", (req, res) => {
   console.log(req.body.message);
