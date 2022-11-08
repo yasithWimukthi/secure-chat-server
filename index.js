@@ -8,13 +8,11 @@ var fs = require("fs");
 require("dotenv").config();
 
 // SSL
-const cert = fs.readFileSync("./ssl/ssdapi_me.crt");
-const ca = fs.readFileSync("./ssl/ssdapi_me.ca-bundle");
-const key = fs.readFileSync("./ssl/ssdapi_me.p7b");
+const cert = fs.readFileSync("./ssl/cert.pem");
+const key = fs.readFileSync("./ssl/ssdapi.key");
 
 const options = {
   cert: cert,
-  ca: ca,
   key: key,
 };
 
@@ -38,7 +36,7 @@ const routes = require("./routes/routes");
 // Route middlewares
 app.use("/api/v1", routes);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 443;
 
 server.listen(PORT, console.log(`Server running on port ${PORT}`));
 
