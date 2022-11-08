@@ -14,6 +14,9 @@ const key = fs.readFileSync("./server.key");
 const options = {
   key: key,
   cert: cert,
+  requestCert: true,
+  rejectUnauthorized: false,
+  ca: [cert],
 };
 
 const server = http.createServer(options, app);
