@@ -44,6 +44,6 @@ app.use("/api/v1", routes);
 
 const PORT = process.env.PORT || 8443;
 
-server.listen(8443, console.log(`Server running on port ${PORT}`));
+server.listen(PORT, console.log(`Server running on port ${PORT}`));
 
 module.exports = app;
