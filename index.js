@@ -4,10 +4,19 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
-
+var fs = require("fs");
 require("dotenv").config();
 
-const server = http.createServer(app);
+// SSL
+const cert = fs.readFileSync("./server.crt");
+const key = fs.readFileSync("./server.key");
+
+const options = {
+  key: key,
+  cert: cert,
+};
+
+const server = http.createServer(options, app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
@@ -27,7 +36,7 @@ const routes = require("./routes/routes");
 // Route middlewares
 app.use("/api/v1", routes);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 8443;
 
 server.listen(PORT, console.log(`Server running on port ${PORT}`));
 

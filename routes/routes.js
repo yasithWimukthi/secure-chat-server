@@ -2,9 +2,14 @@ var multer = require("multer");
 var fs = require("fs");
 const router = require("express").Router();
 var verifyJwt = require("../middleware/verifyJwt");
+var {
+  checkAdminPermissions,
+  checkWorkerPermissions,
+  checkManagerPermissions,
+} = require("../middleware/jwtAuthz");
 
 // api to reseive files from client and save it to file folder
-router.route("/upload", verifyJwt).post((req, res) => {
+router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
   // encode userid with base64 to avoid special characters
   const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
 
@@ -37,7 +42,7 @@ router.route("/upload", verifyJwt).post((req, res) => {
 });
 
 // api to get all files from file folder
-router.route("/files", verifyJwt).get((req, res) => {
+router.route("/files").get(verifyJwt, checkManagerPermissions, (req, res) => {
   // encode userid with base64 to avoid special characters
   const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
 
@@ -61,22 +66,25 @@ router.route("/files", verifyJwt).get((req, res) => {
 });
 
 // api to delete file from file folder
-router.route("/files/:name", verifyJwt).delete((req, res) => {
-  // encode userid with base64 to avoid special characters
-  const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
+router
+  .route("/files/:name")
+  .delete(verifyJwt, checkManagerPermissions, (req, res) => {
+    // encode userid with base64 to avoid special characters
+    const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
 
-  // delete file from sub folder
-  fs.unlink("./files/" + encodedUserId + "/" + req.params.name, (err) => {
-    if (err) {
-      return res.status(500).json(err);
-    }
-    return res.status(200).send("File deleted successfully");
+    // delete file from sub folder
+    fs.unlink("./files/" + encodedUserId + "/" + req.params.name, (err) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
+      return res.status(200).send("File deleted successfully");
+    });
   });
-});
 
 // api to receive message from client
-router.route("/message", verifyJwt).post((req, res) => {
+router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
   console.log(req.body.message);
+  return res.status(200).send("Message received successfully");
 });
 
 module.exports = router;
