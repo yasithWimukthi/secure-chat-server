@@ -42,8 +42,8 @@ const routes = require("./routes/routes");
 // Route middlewares
 app.use("/api/v1", routes);
 
-const PORT = process.env.PORT || 443;
+const PORT = process.env.PORT || 8443;
 
-server.listen(PORT, console.log(`Server running on port ${PORT}`));
+server.listen(8443, console.log(`Server running on port ${PORT}`));
 
 module.exports = app;
