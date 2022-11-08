@@ -8,7 +8,7 @@ var fs = require("fs");
 require("dotenv").config();
 
 // SSL
-const cert = fs.readFileSync("./server.csr");
+const cert = fs.readFileSync("./server.crt");
 const key = fs.readFileSync("./server.key");
 
 const options = {
