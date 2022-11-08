@@ -5,17 +5,20 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
 var fs = require("fs");
-
 require("dotenv").config();
 
-var tls;
-try {
-  tls = require("node:tls");
-} catch (err) {
-  console.log("tls support is disabled!");
-}
+// SSL
+const cert = fs.readFileSync("./ssl/ssdapi_me.crt");
+const ca = fs.readFileSync("./ssl/ssdapi_me.ca-bundle");
+const key = fs.readFileSync("./ssl/ssdapi_me.p7b");
 
-const server = http.createServer(app);
+const options = {
+  cert: cert,
+  ca: ca,
+  key: key,
+};
+
+const server = http.createServer(options, app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
