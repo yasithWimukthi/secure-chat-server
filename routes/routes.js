@@ -7,6 +7,7 @@ var {
   checkWorkerPermissions,
   checkManagerPermissions,
 } = require("../middleware/jwtAuthz");
+var crypto = require("node:crypto");
 
 // api to reseive files from client and save it to file folder
 router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
@@ -83,8 +84,17 @@ router
 
 // api to receive message from client
 router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
-  console.log(req.body.message);
-  return res.status(200).send("Message received successfully");
+  // generate hmac signature
+  var hmac = crypto.createHmac("sha512", "secret");
+  hmac.update(req.body.message);
+  var signature = hmac.digest("hex");
+
+  // compare hmac signature with client signature
+  if (signature === req.headers.signature) {
+    return res.status(200).send("Message received successfully");
+  } else {
+    return res.status(401).send("Message currupted");
+  }
 });
 
 module.exports = router;
