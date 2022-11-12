@@ -7,6 +7,7 @@ var {
   checkWorkerPermissions,
   checkManagerPermissions,
 } = require("../middleware/jwtAuthz");
+var crypto = require("node:crypto");
 
 const mongoose = require("mongoose");
 const Messages = require("../models/message");
@@ -86,6 +87,7 @@ router
   });
 
 // api to receive message from client
+
 router
   .route("/message")
   .post(verifyJwt, checkManagerPermissions, async (req, res) => {
@@ -100,5 +102,20 @@ router
       return res.status(500).send(e.error);
     }
   });
+
+router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
+  // generate hmac signature
+  var hmac = crypto.createHmac("sha512", "secret");
+  hmac.update(req.body.message);
+  var signature = hmac.digest("hex");
+
+  // compare hmac signature with client signature
+  if (signature === req.headers.signature) {
+    return res.status(200).send("Message received successfully");
+  } else {
+    return res.status(401).send("Message currupted");
+  }
+});
+
 
 module.exports = router;
