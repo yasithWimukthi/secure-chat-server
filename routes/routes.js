@@ -16,7 +16,7 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
   // create a sub folder inside file folder
   var dir = "./files/" + encodedUserId;
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
+    fs.mkdirSync(dir, { recursive: true });
   }
 
   var storage = multer.diskStorage({
