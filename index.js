@@ -5,20 +5,16 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
 var fs = require("fs");
-
 require("dotenv").config();
 
-var tls;
-try {
-  tls = require("node:tls");
-} catch (err) {
-  console.log("tls support is disabled!");
-}
-var msg = "hey world";
-var options = {
-  key: fs.readFileSync("ryans-key.pem"),
-  cert: fs.readFileSync("ryans-cert.pem"),
-};
+// SSL
+// const cert = fs.readFileSync("./server.crt");
+// const key = fs.readFileSync("./server.key");
+
+// const options = {
+//   key: key,
+//   cert: cert,
+// };
 
 const server = http.createServer(app);
 
@@ -40,7 +36,7 @@ const routes = require("./routes/routes");
 // Route middlewares
 app.use("/api/v1", routes);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 8443;
 
 server.listen(PORT, console.log(`Server running on port ${PORT}`));
 
