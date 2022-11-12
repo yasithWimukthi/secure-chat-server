@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
-const http = require("http");
+const http = require("https");
 var fs = require("fs");
 require("dotenv").config();
 
@@ -16,7 +16,7 @@ const options = {
   cert: cert,
 };
 
-const server = http.createServer(options, app);
+const server = http.createServer(app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
