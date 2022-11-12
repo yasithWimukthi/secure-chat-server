@@ -4,8 +4,10 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const app = express();
 const http = require("http");
+const mongoose = require("mongoose");
 var fs = require("fs");
 require("dotenv").config();
+require("./db")();
 
 // SSL
 // const cert = fs.readFileSync("./server.crt");
