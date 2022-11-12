@@ -9,6 +9,10 @@ var {
 } = require("../middleware/jwtAuthz");
 var crypto = require("node:crypto");
 
+const mongoose = require("mongoose");
+const Messages = require("../models/message");
+const SHA256 = require("crypto-js/sha256");
+
 // api to reseive files from client and save it to file folder
 router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
   // encode userid with base64 to avoid special characters
@@ -83,6 +87,22 @@ router
   });
 
 // api to receive message from client
+
+router
+  .route("/message")
+  .post(verifyJwt, checkManagerPermissions, async (req, res) => {
+    const message = req.body.message;
+    var hasheddata = SHA256(message).toString();
+    try {
+      const savedMessage = await Messages.create({ text: hasheddata });
+      return res
+        .status(200)
+        .send({ msg: "Message received successfully", savedMessage });
+    } catch (e) {
+      return res.status(500).send(e.error);
+    }
+  });
+
 router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
   // generate hmac signature
   var hmac = crypto.createHmac("sha512", "secret");
@@ -96,5 +116,6 @@ router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
     return res.status(401).send("Message currupted");
   }
 });
+
 
 module.exports = router;
