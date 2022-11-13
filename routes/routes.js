@@ -88,22 +88,22 @@ router
 
 // api to receive message from client
 
-router
-  .route("/message")
-  .post(verifyJwt, checkManagerPermissions, async (req, res) => {
-    const message = req.body.message;
-    var hasheddata = SHA256(message).toString();
-    try {
-      const savedMessage = await Messages.create({ text: hasheddata });
-      return res
-        .status(200)
-        .send({ msg: "Message received successfully", savedMessage });
-    } catch (e) {
-      return res.status(500).send(e.error);
-    }
-  });
+// router
+//   .route("/message")
+//   .post(verifyJwt, checkManagerPermissions, async (req, res) => {
+//     const message = req.body.message;
+//     var hasheddata = SHA256(message).toString();
+//     try {
+//       const savedMessage = await Messages.create({ text: hasheddata });
+//       return res
+//         .status(200)
+//         .send({ msg: "Message received successfully", savedMessage });
+//     } catch (e) {
+//       return res.status(500).send(e.error);
+//     }
+//   });
 
-router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
+router.route("/message").post(verifyJwt, checkWorkerPermissions, async (req, res) => {
   // generate hmac signature
   var hmac = crypto.createHmac("sha512", "secret");
   hmac.update(req.body.message);
@@ -111,6 +111,9 @@ router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
 
   // compare hmac signature with client signature
   if (signature === req.headers.signature) {
+    const message = req.body.message;
+    var hasheddata = SHA256(message).toString();
+    const savedMessage = await Messages.create({ text: hasheddata });
     return res.status(200).send("Message received successfully");
   } else {
     return res.status(401).send("Message currupted");
