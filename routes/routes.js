@@ -8,6 +8,10 @@ var {
   checkWorkerPermissions,
   checkManagerPermissions,
 } = require("../middleware/jwtAuthz");
+var crypto = require("node:crypto");
+const mongoose = require("mongoose");
+const Messages = require("../models/message");
+const SHA256 = require("crypto-js/sha256");
 
 // api to reseive files from client and save it to file folder
 router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
@@ -104,9 +108,39 @@ router
   });
 
 // api to receive message from client
-router.route("/message").post(verifyJwt, checkWorkerPermissions, (req, res) => {
-  console.log(req.body.message);
-  return res.status(200).send("Message received successfully");
-});
+
+// router
+//   .route("/message")
+//   .post(verifyJwt, checkManagerPermissions, async (req, res) => {
+//     const message = req.body.message;
+//     var hasheddata = SHA256(message).toString();
+//     try {
+//       const savedMessage = await Messages.create({ text: hasheddata });
+//       return res
+//         .status(200)
+//         .send({ msg: "Message received successfully", savedMessage });
+//     } catch (e) {
+//       return res.status(500).send(e.error);
+//     }
+//   });
+
+router
+  .route("/message")
+  .post(verifyJwt, checkWorkerPermissions, async (req, res) => {
+    // generate hmac signature
+    var hmac = crypto.createHmac("sha512", "secret");
+    hmac.update(req.body.message);
+    var signature = hmac.digest("hex");
+
+    // compare hmac signature with client signature
+    if (signature === req.headers.signature) {
+      const message = req.body.message;
+      var hasheddata = SHA256(message).toString();
+      const savedMessage = await Messages.create({ text: hasheddata });
+      return res.status(200).send("Message received successfully");
+    } else {
+      return res.status(401).send("Message currupted");
+    }
+  });
 
 module.exports = router;
