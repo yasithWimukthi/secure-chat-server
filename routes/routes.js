@@ -8,12 +8,6 @@ var {
   checkManagerPermissions,
 } = require("../middleware/jwtAuthz");
 
-function checkfilevalidity(file) {
-  var stats = fs.statSync(file);
-  var fileSizeInBytes = stats.size();
-  console.log(fileSizeInBytes);
-}
-
 // api to reseive files from client and save it to file folder
 router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
   // encode userid with base64 to avoid special characters
@@ -27,7 +21,6 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
 
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      checkfilevalidity(file);
       // save file to sub folder
       cb(null, "files/" + encodedUserId);
     },
@@ -36,7 +29,26 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
     },
   });
 
-  var upload = multer({ storage: storage }).single("file");
+  var upload = multer({
+    storage: storage,
+    limits: { fileSize: maxSize },
+    fileFilter: (req, file, cb) => {
+      if (
+        file.mimetype == "file/doc" ||
+        file.mimetype == "file/docx" ||
+        file.mimetype == "file/xls" ||
+        file.mimetype == "file/xlsx" ||
+        file.mimetype == "file/pdf"
+      ) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+        return cb(
+          new Error("Only .doc, .docx, .xls, .xlsx, .pdf formats are allowed!")
+        );
+      }
+    },
+  }).single("file");
 
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
