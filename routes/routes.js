@@ -35,11 +35,13 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
     limits: { fileSize: maxSize },
     fileFilter: (req, file, cb) => {
       if (
-        file.mimetype == ".doc" ||
-        file.mimetype == ".docx" ||
-        file.mimetype == ".xls" ||
-        file.mimetype == ".xlsx" ||
-        file.mimetype == ".pdf"
+        file.mimetype == "application/msword" ||
+        file.mimetype ==
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.mimetype == "application/vnd.ms-excel" ||
+        file.mimetype ==
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.mimetype == "application/pdf"
       ) {
         cb(null, true);
       } else {
