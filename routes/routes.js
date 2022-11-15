@@ -2,13 +2,13 @@ var multer = require("multer");
 var fs = require("fs");
 const router = require("express").Router();
 var verifyJwt = require("../middleware/verifyJwt");
+var maxSize = 5242880;
 var {
   checkAdminPermissions,
   checkWorkerPermissions,
   checkManagerPermissions,
 } = require("../middleware/jwtAuthz");
 var crypto = require("node:crypto");
-
 const mongoose = require("mongoose");
 const Messages = require("../models/message");
 const SHA256 = require("crypto-js/sha256");
@@ -34,7 +34,28 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
     },
   });
 
-  var upload = multer({ storage: storage }).single("file");
+  var upload = multer({
+    storage: storage,
+    limits: { fileSize: maxSize },
+    fileFilter: (req, file, cb) => {
+      if (
+        file.mimetype == "application/msword" ||
+        file.mimetype ==
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+        file.mimetype == "application/vnd.ms-excel" ||
+        file.mimetype ==
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.mimetype == "application/pdf"
+      ) {
+        cb(null, true);
+      } else {
+        cb(null, false);
+        return cb(
+          new Error("Only .doc, .docx, .xls, .xlsx, .pdf formats are allowed!")
+        );
+      }
+    },
+  }).single("file");
 
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
@@ -103,22 +124,23 @@ router
 //     }
 //   });
 
-router.route("/message").post(verifyJwt, checkWorkerPermissions, async (req, res) => {
-  // generate hmac signature
-  var hmac = crypto.createHmac("sha512", "secret");
-  hmac.update(req.body.message);
-  var signature = hmac.digest("hex");
+router
+  .route("/message")
+  .post(verifyJwt, checkWorkerPermissions, async (req, res) => {
+    // generate hmac signature
+    var hmac = crypto.createHmac("sha512", "secret");
+    hmac.update(req.body.message);
+    var signature = hmac.digest("hex");
 
-  // compare hmac signature with client signature
-  if (signature === req.headers.signature) {
-    const message = req.body.message;
-    var hasheddata = SHA256(message).toString();
-    const savedMessage = await Messages.create({ text: hasheddata });
-    return res.status(200).send("Message received successfully");
-  } else {
-    return res.status(401).send("Message currupted");
-  }
-});
-
+    // compare hmac signature with client signature
+    if (signature === req.headers.signature) {
+      const message = req.body.message;
+      var hasheddata = SHA256(message).toString();
+      const savedMessage = await Messages.create({ text: hasheddata });
+      return res.status(200).send("Message received successfully");
+    } else {
+      return res.status(401).send("Message currupted");
+    }
+  });
 
 module.exports = router;

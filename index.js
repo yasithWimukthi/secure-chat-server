@@ -19,13 +19,14 @@ require("./db")();
 // };
 
 const server = http.createServer(app);
+//const server = https.createServer(options, app);
 
 //request allow any domain
 app.use(cors({ origin: "*" }));
 
 //Body parser
 app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Cookie parser
 app.use(cookieParser());
@@ -38,7 +39,7 @@ const routes = require("./routes/routes");
 // Route middlewares
 app.use("/api/v1", routes);
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 8443;
 
 server.listen(PORT, console.log(`Server running on port ${PORT}`));
 
