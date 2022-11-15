@@ -2,6 +2,7 @@ var multer = require("multer");
 var fs = require("fs");
 const router = require("express").Router();
 var verifyJwt = require("../middleware/verifyJwt");
+var maxSize = 5242880;
 var {
   checkAdminPermissions,
   checkWorkerPermissions,
@@ -34,11 +35,11 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
     limits: { fileSize: maxSize },
     fileFilter: (req, file, cb) => {
       if (
-        file.mimetype == "file/doc" ||
-        file.mimetype == "file/docx" ||
-        file.mimetype == "file/xls" ||
-        file.mimetype == "file/xlsx" ||
-        file.mimetype == "file/pdf"
+        file.mimetype == ".doc" ||
+        file.mimetype == ".docx" ||
+        file.mimetype == ".xls" ||
+        file.mimetype == ".xlsx" ||
+        file.mimetype == ".pdf"
       ) {
         cb(null, true);
       } else {
