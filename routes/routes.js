@@ -22,7 +22,10 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
   var dir = "./files/" + encodedUserId;
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
+    // log on heroku
+    console.log("Directory is created." + dir);
   }
+  console.log("Directory is already exist." + dir);
 
   var storage = multer.diskStorage({
     destination: function (req, file, cb) {
