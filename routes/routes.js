@@ -135,8 +135,7 @@ router
     // compare hmac signature with client signature
     if (signature === req.headers.signature) {
       const message = req.body.message;
-      var hasheddata = SHA256(message).toString();
-      const savedMessage = await Messages.create({ text: hasheddata });
+      const savedMessage = await Messages.create({ text: message });
       return res.status(200).send("Message received successfully");
     } else {
       return res.status(401).send("Message currupted");
