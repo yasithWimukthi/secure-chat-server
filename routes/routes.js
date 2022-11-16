@@ -18,56 +18,62 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
   // encode userid with base64 to avoid special characters
   const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
 
-  // create a sub folder inside file folder
-  var dir = "./files/" + encodedUserId;
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-    // log on heroku
-    console.log("Directory is created." + dir);
-  }
-  console.log("Directory is already exist." + dir);
-
-  var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      // save file to sub folder
-      cb(null, "files/" + encodedUserId);
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.originalname);
-    },
-  });
-
-  var upload = multer({
-    storage: storage,
-    limits: { fileSize: maxSize },
-    fileFilter: (req, file, cb) => {
-      if (
-        file.mimetype == "application/msword" ||
-        file.mimetype ==
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        file.mimetype == "application/vnd.ms-excel" ||
-        file.mimetype ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-        file.mimetype == "application/pdf"
-      ) {
-        cb(null, true);
-      } else {
-        cb(null, false);
-        return cb(
-          new Error("Only .doc, .docx, .xls, .xlsx, .pdf formats are allowed!")
-        );
-      }
-    },
-  }).single("file");
-
-  upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      return res.status(500).json(err);
-    } else if (err) {
-      return res.status(500).json(err);
+  try {
+    // create a sub folder inside file folder
+    var dir = "./files/" + encodedUserId;
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      // log on heroku
+      console.log("Directory is created." + dir);
     }
-    return res.status(200).send(req.file);
-  });
+    console.log("Directory is already exist." + dir);
+
+    var storage = multer.diskStorage({
+      destination: function (req, file, cb) {
+        // save file to sub folder
+        cb(null, "files/" + encodedUserId);
+      },
+      filename: function (req, file, cb) {
+        cb(null, file.originalname);
+      },
+    });
+
+    var upload = multer({
+      storage: storage,
+      limits: { fileSize: maxSize },
+      fileFilter: (req, file, cb) => {
+        if (
+          file.mimetype == "application/msword" ||
+          file.mimetype ==
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+          file.mimetype == "application/vnd.ms-excel" ||
+          file.mimetype ==
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          file.mimetype == "application/pdf"
+        ) {
+          cb(null, true);
+        } else {
+          cb(null, false);
+          return cb(
+            new Error(
+              "Only .doc, .docx, .xls, .xlsx, .pdf formats are allowed!"
+            )
+          );
+        }
+      },
+    }).single("file");
+
+    upload(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(500).json(err);
+      } else if (err) {
+        return res.status(500).json(err);
+      }
+      return res.status(200).send(req.file);
+    });
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 // api to get all files from file folder
@@ -130,18 +136,22 @@ router
 router
   .route("/message")
   .post(verifyJwt, checkWorkerPermissions, async (req, res) => {
-    // generate hmac signature
-    var hmac = crypto.createHmac("sha512", "secret");
-    hmac.update(req.body.message);
-    var signature = hmac.digest("hex");
+    try {
+      // generate hmac signature
+      var hmac = crypto.createHmac("sha512", "secret");
+      hmac.update(req.body.message);
+      var signature = hmac.digest("hex");
 
-    // compare hmac signature with client signature
-    if (signature === req.headers.signature) {
-      const message = req.body.message;
-      const savedMessage = await Messages.create({ text: message });
-      return res.status(200).send("Message received successfully");
-    } else {
-      return res.status(401).send("Message currupted");
+      // compare hmac signature with client signature
+      if (signature === req.headers.signature) {
+        const message = req.body.message;
+        const savedMessage = await Messages.create({ text: message });
+        return res.status(200).send("Message received successfully");
+      } else {
+        return res.status(401).send("Message currupted");
+      }
+    } catch (error) {
+      console.log(error);
     }
   });
 
