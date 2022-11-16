@@ -25,8 +25,9 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
       fs.mkdirSync(dir, { recursive: true });
       // log on heroku
       console.log("Directory is created." + dir);
+    } else {
+      console.log("Directory is already exist." + dir);
     }
-    console.log("Directory is already exist." + dir);
 
     var storage = multer.diskStorage({
       destination: function (req, file, cb) {
@@ -35,6 +36,11 @@ router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
       },
       filename: function (req, file, cb) {
         cb(null, file.originalname);
+
+        // log on heroku
+        console.log("File is uploaded: " + file.originalname);
+        // file details
+        console.log(file);
       },
     });
 
