@@ -1,6 +1,6 @@
 const {saveMessage} = require('../controllers/message.controller');
 
-// Path: __test__\message.test.js
+// Path: __test__\index.test.js
 // Compare this snippet from controllers\message.controller.js:
 
 const invalidRequest = {
