@@ -24,8 +24,14 @@ router
     try {
       const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
       var encryptedFile = new Blob([req.body.file]); // Create blob from string
-      const savedFile = await Files.create({ blob: encryptedFile });
-      return res.status(200).send("success");
+
+      //validate file size
+      if (encryptedFile.size <= 5000000) {
+        const savedFile = await Files.create({ blob: encryptedFile });
+        return res.status(200).send("success");
+      } else {
+        return res.status(400).send("file too large");
+      }
     } catch (error) {
       return res.status(500).send("server error");
     }
