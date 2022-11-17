@@ -13,6 +13,7 @@ var crypto = require("node:crypto");
 const mongoose = require("mongoose");
 const Messages = require("../models/message");
 const Files = require("../models/file");
+const Blob = require("node:buffer").Blob;
 
 const SHA256 = require("crypto-js/sha256");
 
@@ -20,10 +21,14 @@ const SHA256 = require("crypto-js/sha256");
 router
   .route("/upload")
   .post(verifyJwt, checkManagerPermissions, async (req, res) => {
+    console.log("uploading file");
+
     // encode userid with base64 to avoid special characters
     try {
       const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
       var encryptedFile = new Blob([req.body.file]); // Create blob from string
+
+      console.log("encryptedFile", encryptedFile);
 
       //validate file size
       if (encryptedFile.size <= 5000000) {
@@ -33,6 +38,7 @@ router
         return res.status(400).send("file too large");
       }
     } catch (error) {
+      console.log(error);
       return res.status(500).send("server error");
     }
   });
