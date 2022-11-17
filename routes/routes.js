@@ -3,6 +3,7 @@ var fs = require("fs");
 const router = require("express").Router();
 var verifyJwt = require("../middleware/verifyJwt");
 var maxSize = 5242880;
+
 var {
   checkAdminPermissions,
   checkWorkerPermissions,
@@ -11,61 +12,30 @@ var {
 var crypto = require("node:crypto");
 const mongoose = require("mongoose");
 const Messages = require("../models/message");
+const Files = require("../models/file");
+
 const SHA256 = require("crypto-js/sha256");
 
 // api to reseive files from client and save it to file folder
-router.route("/upload").post(verifyJwt, checkManagerPermissions, (req, res) => {
-  // encode userid with base64 to avoid special characters
-  const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
+router
+  .route("/upload")
+  .post(verifyJwt, checkManagerPermissions, async (req, res) => {
+    // encode userid with base64 to avoid special characters
+    try {
+      const encodedUserId = Buffer.from(req.headers.userid).toString("base64");
+      var encryptedFile = new Blob([req.body.file]); // Create blob from string
 
-  // create a sub folder inside file folder
-  var dir = "./files/" + encodedUserId;
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-
-  var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      // save file to sub folder
-      cb(null, "files/" + encodedUserId);
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.originalname);
-    },
-  });
-
-  var upload = multer({
-    storage: storage,
-    limits: { fileSize: maxSize },
-    fileFilter: (req, file, cb) => {
-      if (
-        file.mimetype == "application/msword" ||
-        file.mimetype ==
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-        file.mimetype == "application/vnd.ms-excel" ||
-        file.mimetype ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-        file.mimetype == "application/pdf"
-      ) {
-        cb(null, true);
+      //validate file size
+      if (encryptedFile.size <= 5000000) {
+        const savedFile = await Files.create({ blob: encryptedFile });
+        return res.status(200).send("success");
       } else {
-        cb(null, false);
-        return cb(
-          new Error("Only .doc, .docx, .xls, .xlsx, .pdf formats are allowed!")
-        );
+        return res.status(400).send("file too large");
       }
-    },
-  }).single("file");
-
-  upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      return res.status(500).json(err);
-    } else if (err) {
-      return res.status(500).json(err);
+    } catch (error) {
+      return res.status(500).send("server error");
     }
-    return res.status(200).send(req.file);
   });
-});
 
 // api to get all files from file folder
 router.route("/files").get(verifyJwt, checkManagerPermissions, (req, res) => {
@@ -141,5 +111,20 @@ router
       return res.status(401).send("Message currupted");
     }
   });
+
+// function decryptFile(file) {
+//   var reader = new FileReader();
+//   reader.onload = () => {
+//     var key = "1234567887654321";
+
+//     var decrypted = CryptoJS.AES.decrypt(reader.result, key); // Decryption: I: Base64 encoded string (OpenSSL-format) -> O: WordArray
+//     var typedArray = convertWordArrayToUint8Array(decrypted); // Convert: WordArray -> typed array
+
+//     var fileDec = new Blob([typedArray]); // Create blob from typed array
+
+//     return fileDec;
+//   };
+//   reader.readAsText(file);
+// }
 
 module.exports = router;
