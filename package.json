@@ -20,7 +20,7 @@
     "dependency-check": "^4.1.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "express-jwt": "^6.1.2",
+    "express-jwt": "^8.0.0",
     "express-jwt-authz": "^2.4.1",
     "express-validator": "^6.14.2",
     "filereader": "^0.10.3",
